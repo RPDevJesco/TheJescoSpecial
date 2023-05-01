@@ -42,6 +42,10 @@ local function UpdateBuffDisplay()
         else
             if buffData.modifiesSpellPower then
                 buffText = string.format("%.1f\n%d", buffExpirationTime, buffData.buffAmount)
+            elseif buffData.buffAmount ~= nil and buffData.buffAmount > 0 then
+                    buffText = string.format("%.1f\n%d", buffExpirationTime, buffData.buffAmount)
+            elseif buffData.count ~= nil and buffData.count > 0 then
+                buffText = string.format("%.1f\n%d", buffExpirationTime, buffData.count)
             else
                 buffText = string.format("%.1f", buffExpirationTime)
             end

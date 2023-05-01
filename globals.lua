@@ -72,36 +72,109 @@ function CreateSpellIcon(parent, texture)
     return iconFrame
 end
 
+local function findPowerWordShieldBuff()
+    local absorbAmount = 0
+    local powerWordShieldRanks = {
+        [6] = 48,   -- Rank 1
+        [12] = 94,  -- Rank 2
+        [18] = 166, -- Rank 3
+        [24] = 244, -- Rank 4
+        [30] = 313, -- Rank 5
+        [36] = 394, -- Rank 6
+        [42] = 499, -- Rank 7
+        [48] = 622, -- Rank 8
+        [54] = 783, -- Rank 9
+        [60] = 964, -- Rank 10
+        [66] = 1144,-- Rank 11
+        [70] = 1286,-- Rank 12
+        [75] = 1951,-- Rank 13
+        [80] = 2230 -- Rank 14
+    }
+
+    local playerLevel = UnitLevel("player")
+
+    local index = 1
+    while true do
+        local buffName, buffRank, buffIcon, count, buffDuration, buffExpirationTime, buffCaster, _, _, buffSpellId, _, _, _, _, buffAmount, _, _, _ = UnitAura("player", index, "HELPFUL|PLAYER")
+        if not buffName then
+            break
+        end
+
+        if buffName == "Power Word: Shield" then
+            local maxAvailableRank = 0
+            for level, baseAbsorb in pairs(powerWordShieldRanks) do
+                if playerLevel >= level and level > maxAvailableRank then
+                    maxAvailableRank = level
+                    absorbAmount = baseAbsorb
+                end
+            end
+            return absorbAmount
+        end
+
+        index = index + 1
+    end
+
+    local base = absorbAmount
+    local coeff = 0.8068
+    local borrowedTime = 0.40
+    local twinDisciplines = 0.05
+    local focusedPower = 0.04
+    local improvedPWShield = 0.15
+
+    local pws = (base + (GetSpellBonusHealing() * (coeff + borrowedTime))) * (1 + twinDisciplines) * (1 + focusedPower) * (1 + improvedPWShield)
+    return pws
+end
+
 function buffsDebuffs()
     local buffsData, debuffsData = {}, {}
     for i = 1, 40 do -- assuming you want to check all 40 buff/debuff slots
-        local debuffName, _, debuffIcon, _, debuffDuration, debuffExpirationTime, debuffCaster, _, _, debuffSpellId = UnitAura("target", i, "HARMFUL|PLAYER")
-        local buffName, _, buffIcon, _, buffDuration, buffExpirationTime, buffCaster, _, _, buffSpellId = UnitAura("player", i, "HELPFUL|PLAYER")
+        local debuffName, debuffIcon, debuffCount, _, debuffDuration, debuffExpirationTime, debuffCaster, _, _, debuffSpellId = UnitAura("target", i, "HARMFUL|PLAYER")
+        local buffName, buffIcon, count, _, buffDuration, buffExpirationTime, buffCaster, _, _, buffSpellId = UnitAura("player", i, "HELPFUL|PLAYER")
         local petBuffName, _, petBuffIcon, _, petBuffDuration, petBuffExpirationTime, petBuffCaster, _, _, petBuffSpellId, _, _,_,_,_,_, buffAmount  = UnitAura("pet", i, "HELPFUL|PLAYER")
         if debuffName and debuffCaster == "player" then -- if there is a debuff present and it's applied by the player
             local debuff = {
                 name = debuffName, 
-                icon = debuffIcon, 
+                icon = debuffIcon,
+                count = debuffCount,
                 duration = debuffDuration, 
                 expirationTime = debuffExpirationTime, 
                 texture = GetSpellTexture(debuffSpellId), 
                 spellId = debuffSpellId, 
                 isDebuff = true,
-                modifiesSpellPower = false
+                modifiesSpellPower = false,
             }
             table.insert(debuffsData, debuff)
         end
         if buffName and buffCaster == "player" then -- if there is a buff present and it's applied by the player
-            local buff = {
-                name = buffName, 
-                icon = buffIcon, 
-                duration = buffDuration, 
-                expirationTime = buffExpirationTime, 
-                texture = GetSpellTexture(buffSpellId), 
-                spellId = buffSpellId, 
-                isDebuff = false,
-                modifiesSpellPower = false
-            }
+            local buff = {}
+            if buffName == "Power Word: Shield" then
+                buff = {
+                    name = buffName, 
+                    icon = buffIcon,
+                    count = count,
+                    duration = buffDuration, 
+                    expirationTime = buffExpirationTime, 
+                    texture = GetSpellTexture(buffSpellId), 
+                    spellId = buffSpellId, 
+                    isDebuff = false,
+                    modifiesSpellPower = false,
+                    isShield = true,
+                    buffAmount = findPowerWordShieldBuff()
+                }
+            else
+                buff = {
+                    name = buffName, 
+                    icon = buffIcon,
+                    count = count,
+                    duration = buffDuration, 
+                    expirationTime = buffExpirationTime, 
+                    texture = GetSpellTexture(buffSpellId), 
+                    spellId = buffSpellId, 
+                    isDebuff = false,
+                    modifiesSpellPower = false,
+                    isShield = false
+                }
+            end
             table.insert(buffsData, buff)
         end
         if petBuffName and petBuffCaster == "pet" and petBuffName == "Demonic Pact" then
