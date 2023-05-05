@@ -1,0 +1,9 @@
+## Title: JescoSpecial
+## Author: Jeskoh
+## Version: 1.0.1
+## SavedVariablesPerCharacter: buffFrameDB, debuffFrameDB, petBarDB
+## Notes: Tracks the rotation and buffs of a toon and displays it in a frame.
+
+Globals.lua
+BuffDebuffBars.lua
+PetActionBarMover.lua

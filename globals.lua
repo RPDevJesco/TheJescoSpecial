@@ -1,5 +1,5 @@
 function createFrame(width, height)
-    local frame = CreateFrame("Frame", "frame", UIParent)
+    local frame = CreateFrame("Frame", "frame", UIParent, "SecureHandlerStateTemplate")
     frame:SetSize(width, height)
     frame:SetPoint("CENTER")
     frame:SetMovable(true)
@@ -19,23 +19,24 @@ function createFrame(width, height)
     return frame
 end
 
+-- classic era build version: 49229
+-- classic era interface version: 11403
+
 function SavePosition(frame)
     local point, _, _, x, y = frame:GetPoint()
-    FrameDB = {point, x, y}
+    return {point, x, y}
 end
 
-function InitializePosition(frame)
+defaultFramePoint = {"CENTER", 0, 0}
+
+function InitializePosition(frame, storedDB, defaultPoint)
     local point, x, y
-    if FrameDB then
-        point, x, y = unpack(FrameDB)
+    if storedDB then
+        point, x, y = unpack(storedDB)
     else
-        point, x, y = "CENTER", 0, 0
+        point, x, y = unpack(defaultPoint or {"CENTER", 0, 0})
     end
     frame:SetPoint(point, x, y)
-end
-
-function OnPlayerLogout()
-    SavePosition()
 end
 
 function ResetInactiveBuffIcon(frameIcon)
@@ -52,7 +53,6 @@ function buffDataContainsSpellId(data, spellId)
     end
     return false
 end
-
 
 function CreateSpellIcon(parent, texture)
     local iconFrame = CreateFrame("Frame", nil, parent)

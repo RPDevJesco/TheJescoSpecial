@@ -1,7 +1,13 @@
 local debuffFrame = createFrame(160, 32)
 local buffFrame = createFrame(350, 32)
-InitializePosition(buffFrame)
-InitializePosition(debuffFrame)
+local buildVersion = select(2, GetBuildInfo())
+
+if buildVersion == "49229" then
+    debuffFrame:Hide()
+end
+
+InitializePosition(buffFrame, buffFrameDB, defaultFramePoint)
+InitializePosition(debuffFrame, debuffFrameDB, defaultFramePoint)
 
 -- Create the buff and debuff icons
 local BUFF_ICON_SIZE = 32
@@ -147,9 +153,19 @@ end)
 buffFrame:RegisterEvent("ADDON_LOADED")
 buffFrame:RegisterEvent("PLAYER_LOGOUT")
 buffFrame:SetScript("OnEvent", function(self, event, arg1)
-    if event == "ADDON_LOADED" and arg1 == "ToonBuffDebuff" then
-        InitializePosition(buffFrame)
+    if event == "ADDON_LOADED" and arg1 == "JescoSpecial" then
+        InitializePosition(buffFrame, buffFrameDB)
     elseif event == "PLAYER_LOGOUT" then
-        SavePosition(buffFrame)
+        buffFrameDB = SavePosition(buffFrame)
+    end
+end)
+
+debuffFrame:RegisterEvent("ADDON_LOADED")
+debuffFrame:RegisterEvent("PLAYER_LOGOUT")
+debuffFrame:SetScript("OnEvent", function(self, event, arg1)
+    if event == "ADDON_LOADED" and arg1 == "JescoSpecial" then
+        InitializePosition(debuffFrame, debuffFrameDB)
+    elseif event == "PLAYER_LOGOUT" then
+        debuffFrameDB = SavePosition(debuffFrame)
     end
 end)
